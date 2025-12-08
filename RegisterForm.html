@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <title>Реєстрація пристрою</title>
+</head>
+<body>
+  <h1>Реєстрація інвентаря</h1>
+  <form action="/register" method="POST" enctype="multipart/form-data">
+    <label>Назва речі: <input type="text" name="inventory_name" required></label><br>
+    <label>Опис: <textarea name="description"></textarea></label><br>
+    <label>Фото: <input type="file" name="photo"></label><br>
+    <button type="submit">Зареєструвати</button>
+  </form>
+</body>
+</html>
