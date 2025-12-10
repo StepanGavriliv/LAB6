@@ -1,4 +1,4 @@
-//Початок програми
+// Початок програми
 const express = require('express');
 const multer = require('multer');
 const bodyParser = require('body-parser');
@@ -9,7 +9,11 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 // storage для фото
-const upload = multer({ dest: 'uploads/' });
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, 'uploads/'),
+  filename: (req, file, cb) => cb(null, Date.now() + path.extname(file.originalname))
+});
+const upload = multer({ storage });
 
 let inventory = [];
 let idCounter = 1;
@@ -24,7 +28,7 @@ app.post('/register', upload.single('photo'), (req, res) => {
     id: idCounter++,
     name: inventory_name,
     description,
-    photo: req.file ? req.file.filename : null // ✅ зберігаємо реальне ім’я файлу
+    photo: req.file ? req.file.filename : null
   };
   inventory.push(item);
   res.status(201).json(item);
@@ -55,13 +59,14 @@ app.put('/inventory/:id', (req, res) => {
 app.get('/inventory/:id/photo', (req, res) => {
   const item = inventory.find(i => i.id == req.params.id);
   if (!item || !item.photo) return res.status(404).send('Not found');
-  res.sendFile(path.join(__dirname, 'uploads', item.photo)); // ✅ використовуємо item.photo
+  res.sendFile(path.join(__dirname, 'uploads', item.photo));
 });
 
-// PUT /inventory/:id/photo
+//  PUT /inventory/:id/photo
 app.put('/inventory/:id/photo', upload.single('photo'), (req, res) => {
   const item = inventory.find(i => i.id == req.params.id);
   if (!item) return res.status(404).send('Not found');
+  if (!req.file) return res.status(400).send('No file uploaded');
   item.photo = req.file.filename;
   res.sendStatus(200);
 });
@@ -101,4 +106,30 @@ app.use((req, res) => {
   res.status(405).send('Method Not Allowed');
 });
 
-module.exports = app;
+const args = process.argv.slice(2);
+let host = 'localhost';
+let port = 3000;
+let cache = false;
+
+for (let i = 0; i < args.length; i++) {
+  switch (args[i]) {
+    case '-h':
+      host = args[i + 1];
+      i++;
+      break;
+    case '-p':
+      port = parseInt(args[i + 1], 10);
+      i++;
+      break;
+    case '-c':
+      cache = args[i + 1];
+      i++;
+      break;
+  }
+}
+
+// -------------------- Запуск сервера --------------------
+app.listen(port, host, () => {
+  console.log(` Server running on http://${host}:${port}`);
+  console.log(`Cache option: ${cache}`);
+});
